@@ -1,5 +1,5 @@
 # =====================================================================
-#  BUILD IMAGE: Frappe + ERPNext + HRMS + Corelytic ERP
+#  BUILD IMAGE: Frappe + ERPNext + HRMS + Grid ERP
 #  Repo:  akashdataanalyst/Grid_Erp (public, branch: main)
 #  Image: ghcr.io/akashdataanalyst/grid-erp-v2:latest
 #
@@ -9,12 +9,11 @@
 #     purani image wapas chalao (+ migrate shuru ho chuka tha to DB backup restore)
 #     -> maintenance OFF -> job laal (fail) dikhegi, par site purane version par chalti rahegi
 # =====================================================================
-
 name: Build Image
 
 on:
   push:
-    branches: [ main ]       # main par push hone par build
+    branches: [ master ]       # master par push hone par build
   workflow_dispatch:         # Actions tab se manual run
 
 # ek time par sirf ek deploy (doosra queue mein wait karega)
@@ -23,8 +22,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  IMAGE: ghcr.io/akashdataanalyst/grid-erp-v2
-  APP_BRANCH: main
+  IMAGE: ghcr.io/akashdataanalyst/grid-erp-v3
+  APP_BRANCH: master
+  Biometric_BRANCH: master
   FRAPPE_VERSION: version-16
 
 jobs:
@@ -48,7 +48,8 @@ jobs:
           [
             {"url": "https://github.com/frappe/erpnext", "branch": "${{ env.FRAPPE_VERSION }}"},
             {"url": "https://github.com/frappe/hrms", "branch": "${{ env.FRAPPE_VERSION }}"},
-            {"url": "https://github.com/akashdataanalyst/Grid_Erp", "branch": "${{ env.APP_BRANCH }}"}
+            {"url": "https://github.com/akashdataanalyst/Grid_erp_version2", "branch": "${{ env.APP_BRANCH }}"},
+            {"url": "https://github.com/akashdataanalyst/biometric", "branch": "${{ env.Biometric_BRANCH }}"}
           ]
           EOF
           cat apps.json
@@ -105,7 +106,7 @@ jobs:
             cd ~/frappe_docker
             P="docker compose -p griderp -f compose.custom.yaml"
             SITE=griderp.in
-            IMAGE=ghcr.io/akashdataanalyst/grid-erp-v2
+            IMAGE=ghcr.io/akashdataanalyst/grid-erp-v3
             DBP=$(grep '^DB_PASSWORD=' .env | cut -d= -f2-)
             OLD_ID=""
             BK_DB=""
