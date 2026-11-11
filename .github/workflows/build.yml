@@ -2,7 +2,7 @@
 #  BUILD IMAGE: Frappe + ERPNext + HRMS + Grid ERP
 #  Repo:  akashdataanalyst/Grid_Erp (public, branch: main)
 #  Image: ghcr.io/akashdataanalyst/grid-erp-v2:latest
-
+#
 #  AUTO ROLLBACK:
 #   deploy se pehle -> chalti image ko ":rollback" tag + DB backup + maintenance ON
 #   pull / up / migrate / health-check mein kuch bhi fail ->
