@@ -107,8 +107,8 @@ jobs:
             set -e
             cd ~/frappe_docker
             P="docker compose -p griderp -f compose.custom.yaml"
-            SITE=griderp.in
-            IMAGE=ghcr.io/akashdataanalyst/grid-erp-v3
+            SITE=corelyticerp.in
+            IMAGE=ghcr.io/akashdataanalyst/corelytic-erp
             DBP=$(grep '^DB_PASSWORD=' .env | cut -d= -f2-)
             OLD_ID=""
             BK_DB=""
