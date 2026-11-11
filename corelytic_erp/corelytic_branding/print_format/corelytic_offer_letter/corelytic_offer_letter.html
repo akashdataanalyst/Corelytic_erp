@@ -1,0 +1,54 @@
+{%- from "corelytic_erp/templates/print/corelytic_print.html" import styles, header, terms, footer, need -%}
+{%- set b = corelytic_print_branding(doc) -%}
+{%- set applicant = corelytic_job_applicant(doc.job_applicant) -%}
+{{ styles(b) }}
+<div class="gp gp-letter">
+	{{ header(b, _("Offer Letter"), [
+		(_("Ref No"), doc.name),
+		(_("Date"), corelytic_long_date(doc.offer_date)),
+	]) }}
+
+	<p>
+		<span class="gp-party-name">{{ doc.applicant_name }}</span><br>
+		{%- if doc.applicant_email or applicant.email_id %}{{ doc.applicant_email or applicant.email_id }}<br>{% endif %}
+		{%- if applicant.phone_number %}{{ applicant.phone_number }}{% endif %}
+	</p>
+
+	<div class="gp-subject">{{ _("Subject") }}: {{ _("Offer of Employment") }} — {{ need(doc.designation, "Designation") }}</div>
+
+	<p>{{ _("Dear") }} {{ doc.applicant_name }},</p>
+
+	<p>{{ _("With reference to your application and the subsequent discussions you had with us, we are pleased to offer you the position of") }}
+	{{ need(doc.designation, "Designation") }} {{ _("at") }} {{ b.company_name }},
+	{{ _("on the terms and conditions set out below.") }}</p>
+
+	{%- if doc.offer_terms %}
+	<table class="gp-kv" style="margin: 4px 0 14px;">
+		{%- for t in doc.offer_terms %}
+		<tr><td class="gp-k" style="width: 38%;">{{ t.offer_term }}</td><td class="gp-v" style="width: 62%; font-weight: 400;">{{ t.value }}</td></tr>
+		{%- endfor %}
+	</table>
+	{%- endif %}
+
+	{{ terms(doc.terms) }}
+
+	<p class="gp-section">{{ _("This offer is based on the information provided by you and is subject to verification of your documents and references. Please sign and return a copy of this letter as a token of your acceptance.") }}</p>
+
+	<p>{{ _("We look forward to welcoming you to") }} {{ b.company_name }}.</p>
+
+	<table class="gp-sign">
+		<tr>
+			<td style="width: 50%;">
+				<div class="gp-small">{{ _("For") }} <b>{{ b.company_name }}</b></div>
+				<div class="gp-sign-space"></div>
+				<div class="gp-sign-line">{{ _("Authorised Signatory (HR)") }}</div>
+			</td>
+			<td style="width: 50%; text-align: right;">
+				<div class="gp-small"><b>{{ _("Accepted by") }}</b></div>
+				<div class="gp-sign-space"></div>
+				<div class="gp-sign-line" style="text-align: center;">{{ doc.applicant_name }} — {{ _("Signature & Date") }}</div>
+			</td>
+		</tr>
+	</table>
+	{{ footer(b, "This letter is confidential and intended only for the addressee.") }}
+</div>

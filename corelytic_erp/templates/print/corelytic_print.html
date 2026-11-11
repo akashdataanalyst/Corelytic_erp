@@ -1,0 +1,196 @@
+{#- Shared parts of the Corelytic print formats (corelytic_erp/corelytic_branding/print_format/).
+    Usage:  {%- from "corelytic_erp/templates/print/corelytic_print.html" import styles, header, ... -%}
+            {%- set b = corelytic_print_branding(doc) -%}
+    Layout uses tables only: PDFs are made by wkhtmltopdf (no flexbox, no CSS variables). -#}
+
+{%- macro styles(b) -%}
+<style>
+	.gp { font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 10pt; color: {{ b.text_color }}; line-height: 1.45; }
+	.gp table { width: 100%; border-collapse: collapse; border-spacing: 0; margin: 0; }
+	/* Print styles pad every td by 6px; layout cells here start flush, tables below set their own. */
+	.gp td, .gp th { vertical-align: top; padding: 0; }
+	.gp p { margin: 0 0 8px; }
+	.gp thead { display: table-header-group; }
+	.gp tr { page-break-inside: avoid; }
+
+	.gp-head td { padding: 0; }
+	.gp-logo img { max-height: 70px; max-width: 150px; }
+	.gp-co-name { font-size: 15pt; font-weight: 700; color: {{ b.header_color }}; line-height: 1.2; }
+	.gp-co-tag { font-size: 7.5pt; color: {{ b.primary_color }}; letter-spacing: 0.08em; text-transform: uppercase; margin: 2px 0 4px; }
+	.gp-co-addr { font-size: 8.5pt; color: #5f6368; line-height: 1.4; }
+	.gp-title { text-align: right; }
+	.gp-title-text { font-size: 16pt; font-weight: 700; color: {{ b.primary_color }}; letter-spacing: 0.05em; text-transform: uppercase; line-height: 1.2; }
+	.gp-status { display: inline-block; border: 1px solid {{ b.primary_color }}; color: {{ b.primary_color }}; font-size: 7.5pt; font-weight: 700; letter-spacing: 0.1em; padding: 1px 6px; margin-top: 3px; }
+	.gp-meta { margin-top: 6px !important; }
+	.gp-meta td { font-size: 8.5pt; padding: 1px 0; }
+	.gp-meta .gp-meta-label { color: #80868b; text-align: right; padding-right: 8px; white-space: nowrap; }
+	.gp-meta .gp-meta-value { font-weight: 600; text-align: right; width: 1%; white-space: nowrap; color: {{ b.header_color }}; }
+	.gp-bar { height: 3px; background: {{ b.primary_color }}; margin: 10px 0 0; }
+	.gp-bar-thin { height: 1px; background: {{ b.header_color }}; margin: 1px 0 14px; }
+
+	.gp-box { border: 1px solid #dadce0; padding: 8px 10px; }
+	.gp-box-title { font-size: 7.5pt; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: {{ b.primary_deep_color }}; margin-bottom: 4px; }
+	.gp-party-name { font-weight: 700; color: {{ b.header_color }}; }
+	.gp-small { font-size: 8.5pt; color: #5f6368; }
+	.gp td.gp-gap { width: 0; padding: 0 6px; }
+	.gp .gp-section { margin-top: 14px; }
+
+	.gp-items th { background: {{ b.header_color }}; color: #ffffff; font-size: 7.5pt; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 6px 6px; text-align: left; }
+	.gp-items td { padding: 6px 6px; border-bottom: 1px solid #e8eaed; font-size: 9pt; }
+	.gp-items tbody tr:nth-child(even) td { background: #f8f9fa; }
+	.gp-items .gp-item-name { font-weight: 600; color: {{ b.header_color }}; }
+	.gp-num { text-align: right !important; white-space: nowrap; }
+	.gp-center { text-align: center !important; }
+
+	.gp-totals td { padding: 4px 8px; font-size: 9pt; }
+	.gp-totals .gp-num { font-weight: 600; }
+	.gp-totals .gp-grand td { background: {{ b.primary_color }}; color: #ffffff; font-size: 10.5pt; font-weight: 700; padding: 7px 8px; }
+	.gp-words { background: #f6f6f6; border-left: 3px solid {{ b.primary_color }}; padding: 6px 10px; font-size: 8.5pt; margin-top: 10px; }
+	.gp-words b { color: {{ b.header_color }}; }
+
+	.gp-terms { font-size: 8.5pt; color: #3c4043; }
+	.gp-terms p, .gp-terms li { margin: 0 0 3px; }
+	.gp-sign td { padding-top: 26px; }
+	.gp-sign-space { height: 46px; }
+	.gp-sign-line { border-top: 1px solid #9aa0a6; padding-top: 4px; font-size: 8.5pt; display: inline-block; min-width: 190px; }
+	.gp-foot { border-top: 1px solid #dadce0; margin-top: 20px; padding-top: 6px; font-size: 7.5pt; color: #80868b; text-align: center; }
+	.gp-foot b { color: {{ b.primary_color }}; font-weight: 600; }
+
+	.gp-letter { font-size: 10.5pt; line-height: 1.6; }
+	/* Left aligned: wkhtmltopdf drops spaces next to <b> in justified text. */
+	.gp-letter p { margin: 0 0 11px; }
+	.gp-subject { font-weight: 700; color: {{ b.header_color }}; margin: 14px 0 12px; }
+	.gp-missing { color: {{ b.primary_color }}; }
+	.gp-kv td { padding: 4px 8px; border-bottom: 1px solid #e8eaed; font-size: 9pt; }
+	.gp-kv .gp-k { color: #5f6368; width: 22%; }
+	.gp-kv .gp-v { font-weight: 600; color: {{ b.header_color }}; width: 28%; }
+	.gp-net { border: 2px solid {{ b.primary_color }}; padding: 8px 12px; margin-top: 12px; }
+	.gp-net-amount { font-size: 15pt; font-weight: 700; color: {{ b.primary_color }}; text-align: right; }
+</style>
+{%- endmacro -%}
+
+{#- Logo | company name, tagline, address, contacts | document title + meta rows.
+    meta: list of (label, value); empty values are skipped. -#}
+{%- macro header(b, title, meta=[]) -%}
+<table class="gp-head">
+	<tr>
+		<td class="gp-logo" style="width: 17%;">
+			{%- if b.logo %}<img src="{{ b.logo }}" alt="{{ b.company_name }}">{% endif -%}
+		</td>
+		<td style="width: 48%; padding-left: 8px;">
+			<div class="gp-co-name">{{ b.company_name }}</div>
+			{%- if b.tagline %}<div class="gp-co-tag">{{ b.tagline }}</div>{% endif %}
+			<div class="gp-co-addr">
+				{%- if b.address_lines %}{{ b.address_lines | join(", ") }}<br>{% endif -%}
+				{%- set contacts = [] -%}
+				{%- if b.phone %}{% set _x = contacts.append(_("Ph") ~ ": " ~ b.phone) %}{% endif -%}
+				{%- if b.email %}{% set _x = contacts.append(b.email) %}{% endif -%}
+				{%- if b.website %}{% set _x = contacts.append(b.website) %}{% endif -%}
+				{%- if contacts %}{{ contacts | join("  |  ") }}<br>{% endif -%}
+				{%- if b.gstin %}<b>{{ _("GSTIN") }}:</b> {{ b.gstin }}{% endif -%}
+			</div>
+		</td>
+		<td class="gp-title" style="width: 35%;">
+			<div class="gp-title-text">{{ title }}</div>
+			{%- if b.status_label %}<div class="gp-status">{{ b.status_label }}</div>{% endif %}
+			<table class="gp-meta">
+				{%- for label, value in meta if value %}
+				<tr><td class="gp-meta-label">{{ label }}</td><td class="gp-meta-value">{{ value }}</td></tr>
+				{%- endfor %}
+			</table>
+		</td>
+	</tr>
+</table>
+<div class="gp-bar"></div>
+<div class="gp-bar-thin"></div>
+{%- endmacro -%}
+
+{#- A bordered box: party / address / details. body is HTML. -#}
+{%- macro box(title, name="", body="", tax_id="", tax_label="GSTIN") -%}
+<div class="gp-box">
+	<div class="gp-box-title">{{ title }}</div>
+	{%- if name %}<div class="gp-party-name">{{ name }}</div>{% endif %}
+	{%- if body %}<div class="gp-small">{{ body }}</div>{% endif %}
+	{%- if tax_id %}<div class="gp-small"><b>{{ _(tax_label) }}:</b> {{ tax_id }}</div>{% endif %}
+</div>
+{%- endmacro -%}
+
+{#- Sub total, discount, taxes, rounding, grand total (+ amount in words) of a
+    selling / buying document. -#}
+{%- macro totals(doc) -%}
+{%- set grand_field = corelytic_grand_total(doc) -%}
+<table class="gp-totals">
+	<tr><td>{{ _("Sub Total") }}</td><td class="gp-num">{{ doc.get_formatted("total") }}</td></tr>
+	{%- if doc.discount_amount %}
+	<tr><td>{{ _("Discount") }}{% if doc.additional_discount_percentage %} ({{ doc.additional_discount_percentage }}%){% endif %}</td><td class="gp-num">- {{ doc.get_formatted("discount_amount") }}</td></tr>
+	{%- endif %}
+	{%- if doc.net_total != doc.total %}
+	<tr><td>{{ _("Taxable Value") }}</td><td class="gp-num">{{ doc.get_formatted("net_total") }}</td></tr>
+	{%- endif %}
+	{%- for t in doc.taxes if t.tax_amount %}
+	<tr>
+		<td>{{ t.description }}</td>
+		<td class="gp-num">{% if t.get("add_deduct_tax") == "Deduct" %}- {% endif %}{{ t.get_formatted("tax_amount", doc) }}</td>
+	</tr>
+	{%- endfor %}
+	{%- if grand_field == "rounded_total" and doc.rounding_adjustment %}
+	<tr><td>{{ _("Rounding Adjustment") }}</td><td class="gp-num">{{ doc.get_formatted("rounding_adjustment") }}</td></tr>
+	{%- endif %}
+	<tr class="gp-grand"><td>{{ _("Grand Total") }}</td><td class="gp-num">{{ doc.get_formatted(grand_field) }}</td></tr>
+</table>
+{%- endmacro -%}
+
+{%- macro in_words(text) -%}
+{%- if text %}<div class="gp-words"><b>{{ _("Amount in Words") }}:</b> {{ text }}</div>{% endif -%}
+{%- endmacro -%}
+
+{%- macro bank(account) -%}
+{%- if account %}
+<div class="gp-box">
+	<div class="gp-box-title">{{ _("Bank Details") }}</div>
+	<div class="gp-small">
+		{%- if account.bank %}<b>{{ _("Bank") }}:</b> {{ account.bank }}<br>{% endif -%}
+		{%- if account.bank_account_no %}<b>{{ _("A/c No") }}:</b> {{ account.bank_account_no }}<br>{% endif -%}
+		{%- if account.branch_code %}<b>{{ _("IFSC") }}:</b> {{ account.branch_code }}<br>{% endif -%}
+		{%- if account.iban %}<b>{{ _("IBAN") }}:</b> {{ account.iban }}{% endif -%}
+	</div>
+</div>
+{%- endif -%}
+{%- endmacro -%}
+
+{%- macro terms(html, title="Terms & Conditions") -%}
+{%- if html and (html | striptags | trim) %}
+<div class="gp-section">
+	<div class="gp-box-title">{{ _(title) }}</div>
+	<div class="gp-terms">{{ html }}</div>
+</div>
+{%- endif -%}
+{%- endmacro -%}
+
+{#- Right: "For <company> ... Authorised Signatory". Left (optional): e.g. "Receiver's Signature". -#}
+{%- macro signatory(b, left="", right="Authorised Signatory") -%}
+<table class="gp-sign">
+	<tr>
+		<td style="width: 50%;">
+			{%- if left %}<div class="gp-small">&nbsp;</div><div class="gp-sign-space"></div><div class="gp-sign-line">{{ _(left) }}</div>{% endif -%}
+		</td>
+		<td style="width: 50%; text-align: right;">
+			<div class="gp-small">{{ _("For") }} <b>{{ b.company_name }}</b></div>
+			<div class="gp-sign-space"></div>
+			<div class="gp-sign-line" style="text-align: center;">{{ _(right) }}</div>
+		</td>
+	</tr>
+</table>
+{%- endmacro -%}
+
+{%- macro footer(b, note="This is a computer generated document.") -%}
+<div class="gp-foot">
+	{%- if b.footer_line %}<b>{{ b.footer_line }}</b>  &middot;  {% endif -%}
+	{{ _(note) }}
+</div>
+{%- endmacro -%}
+
+{#- Value or a red placeholder, so a missing field is obvious before printing. -#}
+{%- macro need(value, label) -%}
+{%- if value %}{{ value }}{% else %}<span class="gp-missing">[{{ _(label) }} {{ _("not set") }}]</span>{% endif -%}
+{%- endmacro -%}

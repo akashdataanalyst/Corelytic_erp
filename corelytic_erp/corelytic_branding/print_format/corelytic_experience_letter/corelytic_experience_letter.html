@@ -1,0 +1,34 @@
+{%- from "corelytic_erp/templates/print/corelytic_print.html" import styles, header, signatory, footer, need -%}
+{%- set b = corelytic_print_branding(doc) -%}
+{%- set p = corelytic_pronouns(doc.gender) -%}
+{%- set person = corelytic_person_title(doc.salutation, doc.employee_name) -%}
+{%- set dept = corelytic_department(doc.department) -%}
+{%- set left = doc.relieving_date or doc.status == "Left" -%}
+{{ styles(b) }}
+<div class="gp gp-letter">
+	{{ header(b, _("Experience Certificate"), [
+		(_("Ref No"), "EXP/" ~ doc.name),
+		(_("Date"), corelytic_long_date()),
+	]) }}
+
+	<div class="gp-subject" style="text-align: center; text-decoration: underline; margin: 22px 0 18px;">{{ _("TO WHOM IT MAY CONCERN") }}</div>
+
+	{%- if left %}
+	<p>{{ _("This is to certify that") }} {{ person }} ({{ _("Employee ID") }}: {{ doc.name }})
+	{{ _("was employed with") }} {{ b.company_name }} {{ _("from") }} {{ corelytic_long_date(doc.date_of_joining) }}
+	{{ _("to") }} {{ need(corelytic_long_date(doc.relieving_date) if doc.relieving_date else "", "Relieving Date") }}.</p>
+
+	<p>{{ _("At the time of leaving, {0} held the position of").format(p.subject) }} {{ need(doc.designation, "Designation") }}{% if dept %} {{ _("in the") }} {{ dept }} {{ _("department") }}{% endif %}.</p>
+	{%- else %}
+	<p>{{ _("This is to certify that") }} {{ person }} ({{ _("Employee ID") }}: {{ doc.name }})
+	{{ _("has been working with") }} {{ b.company_name }} {{ _("since") }} {{ corelytic_long_date(doc.date_of_joining) }}
+	{{ _("and is currently designated as") }} {{ need(doc.designation, "Designation") }}{% if dept %} {{ _("in the") }} {{ dept }} {{ _("department") }}{% endif %}.</p>
+	{%- endif %}
+
+	<p>{{ _("During {0} tenure with us, we found {1} sincere, hardworking and dedicated to {0} responsibilities. {2} conduct and character have been good.").format(p.possessive, p.object, p.possessive | capitalize) }}</p>
+
+	<p>{{ _("We wish {0} all the best in {1} future endeavours.").format(p.object, p.possessive) }}</p>
+
+	{{ signatory(b, "", "Authorised Signatory (HR)") }}
+	{{ footer(b, "This certificate is issued on request and without any liability on the part of the company.") }}
+</div>

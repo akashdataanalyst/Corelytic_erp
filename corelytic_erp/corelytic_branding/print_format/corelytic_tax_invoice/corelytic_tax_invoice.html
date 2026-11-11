@@ -1,0 +1,83 @@
+{%- from "corelytic_erp/templates/print/corelytic_print.html" import styles, header, box, totals, in_words, bank, terms, signatory, footer -%}
+{%- set b = corelytic_print_branding(doc) -%}
+{%- if doc.is_return -%}{%- set title = _("Credit Note") -%}
+{%- elif doc.is_debit_note -%}{%- set title = _("Debit Note") -%}
+{%- else -%}{%- set title = _("Tax Invoice") -%}{%- endif -%}
+{{ styles(b) }}
+<div class="gp">
+	{{ header(b, title, [
+		(_("Invoice No"), doc.name),
+		(_("Invoice Date"), doc.get_formatted("posting_date")),
+		(_("Due Date"), doc.get_formatted("due_date") if doc.due_date and not doc.is_return else ""),
+		(_("Against Invoice"), doc.return_against if doc.is_return else ""),
+		(_("PO No"), doc.po_no),
+		(_("PO Date"), doc.get_formatted("po_date") if doc.po_date else ""),
+	]) }}
+
+	<table>
+		<tr>
+			<td style="width: 50%;">
+				{{ box(_("Billed To"), doc.customer_name, doc.address_display or "", doc.tax_id or corelytic_party_tax_id("Customer", doc.customer)) }}
+			</td>
+			<td class="gp-gap"></td>
+			<td style="width: 50%;">
+				{{ box(_("Shipped To"), doc.customer_name, doc.shipping_address or doc.address_display or "") }}
+			</td>
+		</tr>
+	</table>
+
+	{%- set show_disc = doc.items | selectattr("discount_percentage") | list | length > 0 %}
+	<table class="gp-items gp-section">
+		<thead>
+			<tr>
+				<th class="gp-center" style="width: 4%;">#</th>
+				<th>{{ _("Description of Goods / Services") }}</th>
+				<th style="width: 10%;">{{ _("HSN/SAC") }}</th>
+				<th class="gp-num" style="width: 9%;">{{ _("Qty") }}</th>
+				<th style="width: 7%;">{{ _("UOM") }}</th>
+				<th class="gp-num" style="width: 12%;">{{ _("Rate") }}</th>
+				{%- if show_disc %}<th class="gp-num" style="width: 7%;">{{ _("Disc %") }}</th>{% endif %}
+				<th class="gp-num" style="width: 14%;">{{ _("Taxable Amount") }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{%- for row in doc.items %}
+			<tr>
+				<td class="gp-center">{{ row.idx }}</td>
+				<td>
+					<div class="gp-item-name">{{ row.item_name }}</div>
+					{%- set extra = corelytic_item_description(row) %}
+					{%- if extra %}<div class="gp-small">{{ extra }}</div>{% endif %}
+					{%- if row.item_code != row.item_name %}<div class="gp-small">{{ _("Code") }}: {{ row.item_code }}</div>{% endif %}
+					{%- if row.batch_no %}<div class="gp-small">{{ _("Batch") }}: {{ row.batch_no }}</div>{% endif %}
+				</td>
+				<td>{{ corelytic_hsn(row) }}</td>
+				<td class="gp-num">{{ row.get_formatted("qty", doc) }}</td>
+				<td>{{ row.uom }}</td>
+				<td class="gp-num">{{ row.get_formatted("rate", doc) }}</td>
+				{%- if show_disc %}<td class="gp-num">{{ row.discount_percentage or "" }}</td>{% endif %}
+				<td class="gp-num">{{ row.get_formatted("net_amount", doc) }}</td>
+			</tr>
+			{%- endfor %}
+		</tbody>
+	</table>
+
+	<table class="gp-section">
+		<tr>
+			<td style="width: 52%;">
+				{{ bank(corelytic_company_bank(doc.company)) }}
+				<div class="gp-small" style="margin-top: 8px;">
+					<b>{{ _("Total Qty") }}:</b> {{ doc.get_formatted("total_qty") }}
+					{%- if doc.get("place_of_supply") %}  |  <b>{{ _("Place of Supply") }}:</b> {{ doc.get("place_of_supply") }}{% endif %}
+				</div>
+			</td>
+			<td class="gp-gap"></td>
+			<td style="width: 48%;">{{ totals(doc) }}</td>
+		</tr>
+	</table>
+	{{ in_words(doc.in_words) }}
+
+	{{ terms(doc.terms) }}
+	{{ signatory(b, "Customer's Signature") }}
+	{{ footer(b) }}
+</div>

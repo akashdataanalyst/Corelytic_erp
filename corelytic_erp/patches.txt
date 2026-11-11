@@ -1,0 +1,19 @@
+[pre_model_sync]
+# "Grid …" DocTypes / Roles / Print Formats become "Corelytic …" (before the DocTypes sync)
+corelytic_erp.patches.rename.grid_names_to_corelytic
+# Recruitment Assessment module + its DocTypes become Corelytic Assessment (before the DocTypes sync)
+corelytic_erp.patches.rename.assessment_names_to_corelytic
+# Corelytic AI: former grid_ai app becomes this app's module (run before its DocTypes sync)
+corelytic_erp.patches.corelytic_ai.adopt_grid_ai_app
+# Corelytic Interview: former grid_interview app becomes this app's module
+corelytic_erp.patches.corelytic_interview.adopt_grid_interview_app
+
+[post_model_sync]
+corelytic_erp.patches.corelytic_assessment.install_assessment_module
+corelytic_erp.patches.corelytic_assessment.seed_trial_assessment
+# Corelytic AI (former grid_ai.patches.v1.*; already-run ones are marked done by adopt_grid_ai_app)
+corelytic_erp.patches.corelytic_ai.move_allowed_role
+corelytic_erp.patches.corelytic_ai.add_item_fields
+corelytic_erp.patches.corelytic_ai.user_choice_defaults
+# Corelytic print formats become the default print format of their DocTypes
+corelytic_erp.patches.print_formats.set_default_print_formats
