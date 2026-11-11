@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  IMAGE: ghcr.io/akashdataanalyst/grid-erp-v3
+  IMAGE: ghcr.io/akashdataanalyst/corelytic-erp
   APP_BRANCH: master
   call_Branch: main
   Biometric_BRANCH: master
