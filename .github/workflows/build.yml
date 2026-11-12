@@ -1,7 +1,8 @@
 # =====================================================================
-#  BUILD IMAGE: Frappe + ERPNext + HRMS + Grid ERP
-#  Repo:  akashdataanalyst/Grid_Erp (public, branch: main)
-#  Image: ghcr.io/akashdataanalyst/grid-erp-v2:latest
+#  BUILD IMAGE: Frappe + ERPNext + HRMS + Grid ERP + Biometric + Callapps
+#  Image: ghcr.io/akashdataanalyst/corelytic-erp:latest
+#  EC2:   ~/frappe_docker/docker-compose.yml  (project: frappe_docker)
+#  Site:  corelyticerp.in
 #
 #  AUTO ROLLBACK:
 #   deploy se pehle -> chalti image ko ":rollback" tag + DB backup + maintenance ON
@@ -13,8 +14,8 @@ name: Build Image
 
 on:
   push:
-    branches: [ master ]       # master par push hone par build
-  workflow_dispatch:         # Actions tab se manual run
+    branches: [ master, main ]   # dono mein se kisi par bhi push ho to chalega
+  workflow_dispatch:             # Actions tab se manual run
 
 # ek time par sirf ek deploy (doosra queue mein wait karega)
 concurrency:
@@ -49,7 +50,7 @@ jobs:
           [
             {"url": "https://github.com/frappe/erpnext", "branch": "${{ env.FRAPPE_VERSION }}"},
             {"url": "https://github.com/frappe/hrms", "branch": "${{ env.FRAPPE_VERSION }}"},
-            {"url": "https://github.com/akashdataanalyst/Corelytic_erp", "branch": "${{ env.APP_BRANCH }}"},
+            {"url": "https://github.com/akashdataanalyst/Grid_erp_version2", "branch": "${{ env.APP_BRANCH }}"},
             {"url": "https://github.com/akashdataanalyst/biometric", "branch": "${{ env.Biometric_BRANCH }}"},
             {"url": "https://github.com/akashdataanalyst/callapps", "branch": "${{ env.call_Branch }}"}
           ]
@@ -70,8 +71,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # STEP 5: Image build + push
-      #   apps.json "secret" ke roop mein jaati hai (naya frappe_docker tareeka)
-      #   CACHE_BUST = commit SHA, taaki har push par naya code aaye
       - name: Image build + push
         uses: docker/build-push-action@v6
         with:
@@ -106,10 +105,17 @@ jobs:
           script: |
             set -e
             cd ~/frappe_docker
-            P="docker compose -p griderp -f compose.custom.yaml"
+
+            # --- EC2 ke actual setup ke hisaab se ---
+            P="docker compose -p frappe_docker -f docker-compose.yml"
             SITE=corelyticerp.in
             IMAGE=ghcr.io/akashdataanalyst/corelytic-erp
-            DBP=$(grep '^DB_PASSWORD=' .env | cut -d= -f2-)
+            SITES_VOL=/var/lib/docker/volumes/frappe_docker_sites/_data
+
+            # DB root password seedha chalte hue db container se
+            DBP=$($P exec -T db sh -c 'echo ${MYSQL_ROOT_PASSWORD:-$MARIADB_ROOT_PASSWORD}' 2>/dev/null | tr -d '\r' || true)
+            [ -n "$DBP" ] || echo "   !! DB root password nahi mila - rollback mein DB restore kaam nahi karega"
+
             OLD_ID=""
             BK_DB=""
             STAGE="start"
@@ -148,13 +154,13 @@ jobs:
               wait_backend
 
               if [ "$STAGE" = "migrate" ] || [ "$STAGE" = "health" ]; then
-                if [ -n "$BK_DB" ]; then
+                if [ -n "$BK_DB" ] && [ -n "$DBP" ]; then
                   echo ">> R2. DB restore: $BK_DB"
                   $P exec -T backend bench --site "$SITE" restore "$BK_DB" \
                     --db-root-username root --db-root-password "$DBP" --force
                   $P exec -T backend bench --site "$SITE" migrate
                 else
-                  echo "!! Backup file nahi mili - DB restore skip"
+                  echo "!! Backup file ya DB password nahi mila - DB restore skip"
                 fi
               else
                 echo ">> R2. DB restore ki zaroorat nahi (migrate chala hi nahi)"
@@ -183,12 +189,11 @@ jobs:
               BK_DB=$($P exec -T backend bash -c "ls -1t sites/$SITE/private/backups/*-database.sql.gz | head -1" | tr -d '\r')
               echo "   backup: $BK_DB"
 
-               echo "   S3 par copy..."
-              sudo aws s3 sync "/var/lib/docker/volumes/griderp_sites/_data/$SITE/private/backups/" \
+              echo "   S3 par copy..."
+              sudo aws s3 sync "$SITES_VOL/$SITE/private/backups/" \
                 "s3://griderp-backups-akash/$SITE/" --only-show-errors \
                 && echo "   S3 copy ✅" || echo "   !! S3 copy fail - deploy jaari rahega"
 
-               
               $P exec -T backend bench --site "$SITE" set-maintenance-mode on
             else
               echo "   site/backend nahi chal raha - backup aur rollback-image skip (first deploy)"
