@@ -191,7 +191,7 @@ jobs:
 
               echo "   S3 par copy..."
               sudo aws s3 sync "$SITES_VOL/$SITE/private/backups/" \
-                "s3://griderp-backups-akash/$SITE/" --only-show-errors \
+                "s3://corelytic-backups-akash/$SITE/" --only-show-errors \
                 && echo "   S3 copy ✅" || echo "   !! S3 copy fail - deploy jaari rahega"
 
               $P exec -T backend bench --site "$SITE" set-maintenance-mode on
