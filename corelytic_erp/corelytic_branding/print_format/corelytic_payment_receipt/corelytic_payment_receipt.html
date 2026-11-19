@@ -1,0 +1,111 @@
+{%- from "corelytic_erp/templates/print/corelytic_print.html" import styles, header, box, in_words, signatory, footer -%}
+{%- set b = corelytic_print_branding(doc) -%}
+{%- set receive = doc.payment_type == "Receive" -%}
+{%- if receive -%}
+	{%- set title = _("Payment Receipt") -%}
+	{%- set amount_field, currency = "received_amount", doc.paid_to_account_currency -%}
+{%- elif doc.payment_type == "Pay" -%}
+	{%- set title = _("Payment Voucher") -%}
+	{%- set amount_field, currency = "paid_amount", doc.paid_from_account_currency -%}
+{%- else -%}
+	{%- set title = _("Transfer Voucher") -%}
+	{%- set amount_field, currency = "paid_amount", doc.paid_from_account_currency -%}
+{%- endif -%}
+{%- set amount = doc.get(amount_field) -%}
+{{ styles(b) }}
+<div class="gp">
+	{{ header(b, title, [
+		(_("Voucher No"), doc.name),
+		(_("Date"), doc.get_formatted("posting_date")),
+		(_("Mode"), doc.mode_of_payment),
+	]) }}
+
+	<table>
+		<tr>
+			<td style="width: 58%;">
+				{%- if doc.party %}
+				{{ box(_("Received From") if receive else _("Paid To"), doc.party_name or doc.party, doc.party_type,
+					corelytic_party_tax_id(doc.party_type, doc.party)) }}
+				{%- else %}
+				{{ box(_("Transfer"), doc.paid_from ~ "  →  " ~ doc.paid_to) }}
+				{%- endif %}
+			</td>
+			<td class="gp-gap"></td>
+			<td style="width: 42%;">
+				<div class="gp-net" style="margin-top: 0;">
+					<div class="gp-box-title">{{ _("Amount") }}</div>
+					<div class="gp-net-amount">{{ doc.get_formatted(amount_field) }}</div>
+				</div>
+			</td>
+		</tr>
+	</table>
+
+	<div class="gp-section">
+		{%- if receive %}
+		<p>{{ _("Received with thanks from") }} {{ doc.party_name or doc.party }}
+		{%- if doc.mode_of_payment %} {{ _("by") }} {{ doc.mode_of_payment }}{% endif %}
+		{%- if doc.reference_no %} ({{ _("Ref No") }} {{ doc.reference_no }}{% if doc.reference_date %} {{ _("dated") }} {{ doc.get_formatted("reference_date") }}{% endif %}){% endif %}
+		{{ _("the sum of") }} {{ corelytic_in_words(amount, currency) }}</p>
+		{%- else %}
+		{{ in_words(corelytic_in_words(amount, currency)) }}
+		{%- endif %}
+	</div>
+
+	<table class="gp-kv gp-section">
+		<tr>
+			<td class="gp-k">{{ _("Account Paid From") }}</td><td class="gp-v">{{ doc.paid_from }}</td>
+			<td class="gp-k">{{ _("Account Paid To") }}</td><td class="gp-v">{{ doc.paid_to }}</td>
+		</tr>
+		{%- if doc.reference_no or doc.bank_account %}
+		<tr>
+			<td class="gp-k">{{ _("Cheque / Ref No") }}</td><td class="gp-v">{{ doc.reference_no or "" }}</td>
+			<td class="gp-k">{{ _("Ref Date") }}</td><td class="gp-v">{{ doc.get_formatted("reference_date") if doc.reference_date else "" }}</td>
+		</tr>
+		{%- endif %}
+	</table>
+
+	{%- if doc.references %}
+	<table class="gp-items gp-section">
+		<thead>
+			<tr>
+				<th class="gp-center" style="width: 5%;">#</th>
+				<th>{{ _("Against Document") }}</th>
+				<th style="width: 14%;">{{ _("Due Date") }}</th>
+				<th class="gp-num" style="width: 17%;">{{ _("Grand Total") }}</th>
+				<th class="gp-num" style="width: 17%;">{{ _("Outstanding") }}</th>
+				<th class="gp-num" style="width: 17%;">{{ _("Allocated") }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{%- for r in doc.references %}
+			<tr>
+				<td class="gp-center">{{ r.idx }}</td>
+				<td><div class="gp-item-name">{{ r.reference_name }}</div><div class="gp-small">{{ _(r.reference_doctype) }}</div></td>
+				<td>{{ r.get_formatted("due_date", doc) if r.due_date else "" }}</td>
+				<td class="gp-num">{{ r.get_formatted("total_amount", doc) }}</td>
+				<td class="gp-num">{{ r.get_formatted("outstanding_amount", doc) }}</td>
+				<td class="gp-num">{{ r.get_formatted("allocated_amount", doc) }}</td>
+			</tr>
+			{%- endfor %}
+		</tbody>
+	</table>
+	{%- endif %}
+
+	{%- if doc.deductions %}
+	<table class="gp-kv gp-section">
+		{%- for d in doc.deductions %}
+		<tr><td class="gp-k" style="width: 70%;">{{ _("Deduction") }}: {{ d.account }}{% if d.description %} — {{ d.description }}{% endif %}</td><td class="gp-num">{{ d.get_formatted("amount", doc) }}</td></tr>
+		{%- endfor %}
+	</table>
+	{%- endif %}
+
+	{%- set remarks = doc.custom_remarks and doc.remarks -%}
+	{%- if remarks %}<div class="gp-section gp-small"><b>{{ _("Remarks") }}:</b> {{ doc.remarks }}</div>{% endif %}
+
+	{%- if receive %}
+	{{ signatory(b, "", "Authorised Signatory") }}
+	{%- else %}
+	{{ signatory(b, "Receiver's Signature", "Authorised Signatory") }}
+	{%- endif %}
+	{{ footer(b) }}
+</div>

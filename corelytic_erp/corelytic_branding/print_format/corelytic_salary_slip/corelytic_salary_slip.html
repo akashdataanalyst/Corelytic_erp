@@ -1,0 +1,76 @@
+{%- from "corelytic_erp/templates/print/corelytic_print.html" import styles, header, footer -%}
+{%- set b = corelytic_print_branding(doc) -%}
+{%- set emp = corelytic_employee(doc.employee) -%}
+{%- set net_field = "rounded_total" if doc.rounded_total else "net_pay" -%}
+{{ styles(b) }}
+<div class="gp">
+	{{ header(b, _("Salary Slip"), [
+		(_("Pay Period"), corelytic_month(doc.start_date)),
+		(_("Slip No"), doc.name),
+		(_("Pay Date"), doc.get_formatted("posting_date")),
+	]) }}
+
+	<table class="gp-kv">
+		<tr>
+			<td class="gp-k">{{ _("Employee Name") }}</td><td class="gp-v">{{ doc.employee_name }}</td>
+			<td class="gp-k">{{ _("Employee ID") }}</td><td class="gp-v">{{ doc.employee }}</td>
+		</tr>
+		<tr>
+			<td class="gp-k">{{ _("Designation") }}</td><td class="gp-v">{{ doc.designation or "" }}</td>
+			<td class="gp-k">{{ _("Department") }}</td><td class="gp-v">{{ corelytic_department(doc.department) }}</td>
+		</tr>
+		<tr>
+			<td class="gp-k">{{ _("Date of Joining") }}</td><td class="gp-v">{{ corelytic_long_date(emp.date_of_joining) if emp.date_of_joining else "" }}</td>
+			<td class="gp-k">{{ _("PAN") }}</td><td class="gp-v">{{ emp.pan_number or "" }}</td>
+		</tr>
+		<tr>
+			<td class="gp-k">{{ _("Bank") }}</td><td class="gp-v">{{ doc.bank_name or emp.bank_name or "" }}</td>
+			<td class="gp-k">{{ _("Account No") }}</td><td class="gp-v">{{ doc.bank_account_no or emp.bank_ac_no or "" }}</td>
+		</tr>
+		<tr>
+			<td class="gp-k">{{ _("Working Days") }}</td><td class="gp-v">{{ doc.get_formatted("total_working_days") }}</td>
+			<td class="gp-k">{{ _("Paid Days") }}</td><td class="gp-v">{{ doc.get_formatted("payment_days") }}{% if doc.leave_without_pay %} <span class="gp-small">({{ _("LWP") }} {{ doc.get_formatted("leave_without_pay") }})</span>{% endif %}</td>
+		</tr>
+	</table>
+
+	<table class="gp-items gp-section">
+		<thead>
+			<tr>
+				<th style="width: 32%;">{{ _("Earnings") }}</th>
+				<th class="gp-num" style="width: 18%;">{{ _("Amount") }}</th>
+				<th style="width: 32%; border-left: 2px solid #ffffff;">{{ _("Deductions") }}</th>
+				<th class="gp-num" style="width: 18%;">{{ _("Amount") }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{%- for e, d in corelytic_salary_rows(doc) %}
+			<tr>
+				<td>{{ e.salary_component if e else "" }}</td>
+				<td class="gp-num">{{ e.get_formatted("amount", doc) if e else "" }}</td>
+				<td style="border-left: 2px solid #e8eaed;">{{ d.salary_component if d else "" }}</td>
+				<td class="gp-num">{{ d.get_formatted("amount", doc) if d else "" }}</td>
+			</tr>
+			{%- endfor %}
+			<tr>
+				<td style="font-weight: 700; border-top: 2px solid {{ b.header_color }};">{{ _("Gross Earnings") }}</td>
+				<td class="gp-num" style="font-weight: 700; border-top: 2px solid {{ b.header_color }};">{{ doc.get_formatted("gross_pay") }}</td>
+				<td style="font-weight: 700; border-top: 2px solid {{ b.header_color }}; border-left: 2px solid #e8eaed;">{{ _("Total Deductions") }}</td>
+				<td class="gp-num" style="font-weight: 700; border-top: 2px solid {{ b.header_color }};">{{ doc.get_formatted("total_deduction") }}</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<div class="gp-net">
+		<table>
+			<tr>
+				<td style="vertical-align: middle;">
+					<div class="gp-box-title" style="margin: 0;">{{ _("Net Pay") }}</div>
+					<div class="gp-small">{{ doc.total_in_words or "" }}</div>
+				</td>
+				<td class="gp-net-amount" style="vertical-align: middle; white-space: nowrap;">{{ doc.get_formatted(net_field) }}</td>
+			</tr>
+		</table>
+	</div>
+
+	{{ footer(b, "This is a system generated salary slip and does not require a signature.") }}
+</div>

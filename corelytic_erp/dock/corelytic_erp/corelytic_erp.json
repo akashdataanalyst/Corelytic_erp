@@ -1,0 +1,55 @@
+{
+ "app": "corelytic_erp",
+ "creation": "2026-10-16 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Dock",
+ "idx": 0,
+ "items": [
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "message-circle",
+   "link_to": "Corelytic WhatsApp",
+   "link_type": "Sidebar",
+   "title": "WhatsApp"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "clipboard-check",
+   "link_to": "Corelytic Assessment",
+   "link_type": "Sidebar",
+   "title": "Corelytic Assessment"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "video",
+   "link_to": "Corelytic Interview",
+   "link_type": "Sidebar",
+   "title": "Interviews"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "sparkles",
+   "link_to": "Corelytic AI",
+   "link_type": "Sidebar",
+   "title": "AI Assistant"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "palette",
+   "link_to": "Corelytic Branding",
+   "link_type": "Sidebar",
+   "title": "Branding"
+  }
+ ],
+ "modified": "2026-11-08 23:30:00.000000",
+ "modified_by": "Administrator",
+ "name": "corelytic_erp",
+ "owner": "Administrator",
+ "standard": 1,
+ "user": ""
+}

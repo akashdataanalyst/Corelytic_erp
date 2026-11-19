@@ -1,0 +1,43 @@
+{%- from "corelytic_erp/templates/print/corelytic_print.html" import styles, header, signatory, footer, need -%}
+{%- set b = corelytic_print_branding(doc) -%}
+{%- set dept = corelytic_department(doc.department) -%}
+{%- set relieved_on = need(corelytic_long_date(doc.relieving_date) if doc.relieving_date else "", "Relieving Date") -%}
+{{ styles(b) }}
+<div class="gp gp-letter">
+	{{ header(b, _("Relieving Letter"), [
+		(_("Ref No"), "REL/" ~ doc.name),
+		(_("Date"), corelytic_long_date(doc.relieving_date) if doc.relieving_date else corelytic_long_date()),
+	]) }}
+
+	<p>
+		<span class="gp-party-name">{{ corelytic_person_title(doc.salutation, doc.employee_name) }}</span><br>
+		{{ _("Employee ID") }}: {{ doc.name }}<br>
+		{%- if doc.designation %}{{ doc.designation }}{% if dept %}, {{ dept }}{% endif %}<br>{% endif %}
+		{%- if doc.personal_email %}{{ doc.personal_email }}{% endif %}
+	</p>
+
+	<div class="gp-subject">{{ _("Subject") }}: {{ _("Relieving Letter") }}</div>
+
+	<p>{{ _("Dear") }} {{ doc.first_name or doc.employee_name }},</p>
+
+	<p>
+		{%- if doc.resignation_letter_date -%}
+		{{ _("This has reference to your resignation letter dated") }} {{ corelytic_long_date(doc.resignation_letter_date) }}.
+		{{ _("We wish to inform you that your resignation has been accepted and") }}
+		{%- else -%}
+		{{ _("We wish to inform you that") }}
+		{%- endif %}
+		{{ _("you are relieved from the services of") }} {{ b.company_name }}
+		{{ _("with effect from the close of working hours on") }} {{ relieved_on }}.
+	</p>
+
+	<p>{{ _("We confirm that you were employed with us from") }} {{ corelytic_long_date(doc.date_of_joining) }} {{ _("to") }} {{ relieved_on }}
+	{%- if doc.designation %} {{ _("and your last held designation was") }} {{ doc.designation }}{% endif %}.</p>
+
+	<p>{{ _("Your full and final settlement will be processed as per company policy.") }}</p>
+
+	<p>{{ _("We thank you for your contribution to the organisation and wish you success in your future endeavours.") }}</p>
+
+	{{ signatory(b, "", "Authorised Signatory (HR)") }}
+	{{ footer(b, "This letter is confidential and intended only for the addressee.") }}
+</div>

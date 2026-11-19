@@ -1,0 +1,34 @@
+{
+ "content": null,
+ "creation": "2026-10-13 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-11-08 23:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Corelytic Interview",
+ "name": "corelytic-interview-dashboard",
+ "owner": "Administrator",
+ "page_name": "corelytic-interview-dashboard",
+ "roles": [
+  {
+   "role": "Corelytic Interview Administrator"
+  },
+  {
+   "role": "Corelytic Interview HR User"
+  },
+  {
+   "role": "Corelytic Interview Reviewer"
+  },
+  {
+   "role": "Interviewer"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "title": "Interview Dashboard"
+}
